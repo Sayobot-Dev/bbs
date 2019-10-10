@@ -1,0 +1,40 @@
+{
+  "name": "bbs",
+  "version": "0.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/sayobot-dev/bbs.git"
+  },
+  "keywords": [
+    "bbs",
+    "sayobot",
+    "osu"
+  ],
+  "author": "masnn",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/sayobot-dev/bbs/issues"
+  },
+  "homepage": "https://github.com/sayobot-dev/bbs#readme",
+  "dependencies": {
+    "bson": "^4.0.2",
+    "core-util-is": "^1.0.2",
+    "gridfs": "^1.0.0",
+    "koa": "^2.8.2",
+    "koa-body": "^4.1.1",
+    "koa-morgan": "^1.0.1",
+    "koa-router": "^7.4.0",
+    "koa-send": "^5.0.0",
+    "koa-session2": "^2.2.10",
+    "koa-session2-mongostore": "^0.0.5",
+    "lodash": "^4.17.15",
+    "mongodb": "^3.3.2",
+    "socket.io": "^2.3.0",
+    "stack-trace": "^0.0.10"
+  }
+}
