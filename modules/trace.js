@@ -1,9 +1,7 @@
 const statuses = require('statuses');
 const { isFunction } = require('core-util-is');
-const Tracer = require('./tracer');
 
 module.exports = function (opts) {
-    const tracer = new Tracer(opts);
     // source map support for compiled file
     let errorCallback;
     if (opts && isFunction(opts.error)) errorCallback = opts.error;
@@ -17,7 +15,7 @@ module.exports = function (opts) {
             if (typeof err.status !== 'number' || !statuses[err.status])
                 err.status = 500;
             ctx.status = err.status;
-            return tracer.run(ctx, err);
+            ctx.body = `<pre>${err.toString()}</pre><br/><pre>${err.stack}</pre>`;
         });
     };
 };

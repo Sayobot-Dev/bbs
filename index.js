@@ -38,10 +38,10 @@ module.exports = class Hydro extends EventEmitter {
         await this.connectDatabase();
         await this.mountLib();
         await require('./lib/deploy.js')(this.db, this.lib);
-        this.app.use((require('./modules/trace/index.js'))({
+        this.app.use((require('./modules/trace.js'))({
             sourceMap: false
         }));
-        this.app.use(require('./modules/static')(path.join(__dirname, 'public'), false));
+        this.app.use(require('koa-static')(path.join(__dirname, 'public')));
         this.app.use(require('koa-morgan')(':method :url :status :res[content-length] - :response-time ms'));
         this.app.use(require('koa-body')({
             patchNode: true,
@@ -52,26 +52,21 @@ module.exports = class Hydro extends EventEmitter {
             }
         }));
         this.app.use(require('koa-session2')(this.sessionOpt));
-        this.app.use(async (ctx, next) => {
-            let that = this;
-            ctx.state.url = function (name, params) {
-                let route = that.router.route(name);
-                if (route) {
-                    let args = Array.prototype.slice.call(arguments, 1);
-                    return route.url.apply(route, args);
-                }
-                return '#';
-            };
-            ctx.state._ = msg => this.locales[ctx.state.user.language][msg] || msg;
-            await next();
-        });
-        //TODO(masnn) Load main routes.
+        this.app.use(require('koa-nunjucks-2')({
+            ext: 'html',
+            path: path.join(__dirname, 'templates'),
+            nunjucksConfig: {
+                trimBlocks: true
+            }
+        }));
+        await this.loadRoutes();
         this.app.use(this.router.routes()).use(this.router.allowedMethods());
         this.status.loaded = true;
     }
     async listen() {
-        await this.server.listen(this.cfg.port);
+        await this.server.listen((await this.lib.conf.get('port')) || '8080');
         this.status.listening = true;
+        log.log('Server listening on port: %s', (await this.lib.conf.get('port')) || '8080');
     }
     async stop() {
         await this.server.close();
@@ -101,5 +96,21 @@ module.exports = class Hydro extends EventEmitter {
         this.lib.conf = new conf({ db: this.db });
         let user = require('./lib/user.js');
         this.lib.user = new user({ db: this.db });
+    }
+    async loadRoutes() {
+        let i = {
+            db: this.db,
+            lib: this.lib
+        }
+        let Base = new (require('./handlers/base.js'))(i);
+        let User = new (require('./handlers/user.js'))(i);
+        let Main = new (require('./handlers/main.js'))(i);
+        let [base, user, main] = await Promise.all([
+            Base.init(), User.init(), Main.init()
+        ]);
+        this.router
+            .use(base)
+            .use(user.routes()).use(user.allowedMethods())
+            .use(main.routes()).use(main.allowedMethods());
     }
 };
