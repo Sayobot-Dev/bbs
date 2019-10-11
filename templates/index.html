@@ -1,4 +1,6 @@
 {% extends "layout/basic.html" %}
 {% block body %}
-Success!
+    {% for i in categories %}
+        <a href="/{{i.id}}">{{i.name}}</a>
+    {% endfor %}
 {% endblock %}

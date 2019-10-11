@@ -1,0 +1,10 @@
+{% extends "layout/basic.html" %}
+{% block body %}
+    <h1>{{ category.name }}</h1>
+    <br/>
+    <a href="/{{ category.id }}/create">Create New Thread</a>
+    <br/>
+    {% for thread in threads %}
+        <a href="/{{category.id}}/{{thread._id}}">{{thread.title}}</a>
+    {% endfor %}
+{% endblock %}

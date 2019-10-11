@@ -1,0 +1,9 @@
+{% extends "layout/basic.html" %}
+{% block body %}
+    <h1>Create New Thread</h1>
+    <form method="POST">
+        Title:<input type="text" name="title"/>
+        Content:<input type="text" name="content"></input>
+        <button type="submit">Create</button>
+    </form>
+{% endblock %}

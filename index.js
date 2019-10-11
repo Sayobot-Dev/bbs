@@ -101,7 +101,7 @@ module.exports = class Hydro extends EventEmitter {
         let i = {
             db: this.db,
             lib: this.lib
-        }
+        };
         let Base = new (require('./handlers/base.js'))(i);
         let User = new (require('./handlers/user.js'))(i);
         let Main = new (require('./handlers/main.js'))(i);
