@@ -3,7 +3,6 @@ const
     bson = require('bson'),
     Koa = require('koa'),
     Router = require('koa-router'),
-    MongoStore = require('koa-session2-mongostore'),
     path = require('path'),
     mongo = require('mongodb'),
     EventEmitter = require('events');
@@ -20,14 +19,6 @@ module.exports = class Hydro extends EventEmitter {
         this.routes = [];
         this.routers = [];
         this.serviceID = new bson.ObjectID();
-        this.sessionOpt = {
-            store: new MongoStore({
-                collection: 'session',
-                url: this.cfg.db_url,
-                dbName: this.cfg.db_name,
-                collName: 'session'
-            })
-        };
         this.app = new Koa();
         this.app.keys = this.cfg.keys || ['Hydro'];
         this.router = new Router();
@@ -51,7 +42,6 @@ module.exports = class Hydro extends EventEmitter {
                 keepExtensions: true
             }
         }));
-        this.app.use(require('koa-session2')(this.sessionOpt));
         this.app.use(require('koa-nunjucks-2')({
             ext: 'html',
             path: path.join(__dirname, 'templates'),
@@ -95,7 +85,9 @@ module.exports = class Hydro extends EventEmitter {
         let conf = require('./lib/config.js');
         this.lib.conf = new conf({ db: this.db });
         let user = require('./lib/user.js');
-        this.lib.user = new user({ db: this.db });
+        this.lib.user = new user({ db: this.db, lib: this.lib });
+        let crypto = require('./lib/crypto.js');
+        this.lib.crypto = new crypto();
     }
     async loadRoutes() {
         let i = {
@@ -110,7 +102,7 @@ module.exports = class Hydro extends EventEmitter {
         ]);
         this.router
             .use(base)
-            .use(user.routes()).use(user.allowedMethods())
-            .use(main.routes()).use(main.allowedMethods());
+            .use(main.routes()).use(main.allowedMethods())
+            .use(user.routes()).use(user.allowedMethods());
     }
 };
