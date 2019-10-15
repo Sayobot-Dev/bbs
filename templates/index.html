@@ -6,7 +6,7 @@
         <a href="/login">Login</a>
         <a href="/register">Register</a>
     {% else %}
-    Logged in as {{ user.uname }}
+    Logged in as {{ user.uname }} <a href="/logout">Logout</a>
     {% endif %}
     <br/>
     {% for category in categories %}

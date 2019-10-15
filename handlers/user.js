@@ -14,9 +14,10 @@ module.exports = class HANDLER_USER {
                 await ctx.render('login');
             })
             .post('/login', async ctx => {
-                let udoc = this.lib.user.check(ctx.request.body.username, ctx.request.body.password);
-                if (!udoc) await ctx.render('login', { message: 'Incorrent login detail' });
+                let udoc = await this.lib.user.check(ctx.request.body.username, ctx.request.body.password);
+                if (!udoc) await ctx.render('login', { message: 'Incorrent login detail.' });
                 else {
+                    console.log(udoc._id);
                     ctx.session.uid = udoc._id;
                     ctx.redirect(ctx.query.redirect || '/');
                 }
@@ -25,16 +26,24 @@ module.exports = class HANDLER_USER {
                 await ctx.render('register');
             })
             .post('/register', async ctx => {
-                let udoc = await this.lib.user.create({
-                    email: ctx.request.body.email,
-                    uname: ctx.request.body.username,
-                    password: ctx.request.body.password,
-                    regip: ctx.request.ip
-                });
-                ctx.session.uid = udoc._id;
-                ctx.redirect(ctx.query.redirect || '/');
+                let [uname, email] = await Promise.all([
+                    await this.db.collection('user').findOne({ uname_lower: ctx.request.body.username.toLowerCase() }),
+                    await this.db.collection('user').findOne({ email_lower: ctx.request.body.email.toLowerCase() }),
+                ]);
+                if (uname) await ctx.render('register', { message: 'Username already used.' });
+                else if (email) await ctx.render('register', { message: 'Email already used.' });
+                else {
+                    let { insertedId } = await this.lib.user.create({
+                        email: ctx.request.body.email,
+                        uname: ctx.request.body.username,
+                        password: ctx.request.body.password,
+                        regip: ctx.request.ip
+                    });
+                    ctx.session.uid = insertedId;
+                    ctx.redirect(ctx.query.redirect || '/');
+                }
             })
-            .post('/logout', async ctx => {
+            .all('/logout', async ctx => {
                 ctx.session.uid = UID_GUEST;
                 ctx.redirect(ctx.query.redirect || '/');
             });

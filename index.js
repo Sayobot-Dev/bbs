@@ -28,7 +28,7 @@ module.exports = class Hydro extends EventEmitter {
     async load() {
         await this.connectDatabase();
         await this.mountLib();
-        await require('./lib/deploy.js')(this.db, this.lib);
+        if (!await require('./lib/deploy.js')(this.db, this.lib)) return;
         this.app.use((require('./modules/trace.js'))({
             sourceMap: false
         }));
@@ -54,9 +54,10 @@ module.exports = class Hydro extends EventEmitter {
         this.status.loaded = true;
     }
     async listen() {
-        await this.server.listen((await this.lib.conf.get('port')) || '8080');
+        if (!this.status.loaded) return;
+        await this.server.listen((await this.lib.conf.get('bbs.port')) || '10001');
         this.status.listening = true;
-        log.log('Server listening on port: %s', (await this.lib.conf.get('port')) || '8080');
+        log.log('Server listening on port: %s', (await this.lib.conf.get('bbs.port')) || '10001');
     }
     async stop() {
         await this.server.close();
@@ -92,7 +93,8 @@ module.exports = class Hydro extends EventEmitter {
     async loadRoutes() {
         let i = {
             db: this.db,
-            lib: this.lib
+            lib: this.lib,
+            config: {}
         };
         let Base = new (require('./handlers/base.js'))(i);
         let User = new (require('./handlers/user.js'))(i);
