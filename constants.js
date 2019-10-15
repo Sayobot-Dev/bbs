@@ -7,5 +7,5 @@ module.exports = {
     PERM_THREAD_DELETE: 4,
     PERM_REPLY_DELETE: 8,
     PERM_ADMIN: 16,
-    PERM_DEFAULT: 1 & 2
+    PERM_DEFAULT: 1 | 2
 };
