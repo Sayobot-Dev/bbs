@@ -17,7 +17,6 @@ module.exports = class HANDLER_USER {
                 let udoc = await this.lib.user.check(ctx.request.body.username, ctx.request.body.password);
                 if (!udoc) await ctx.render('login', { message: 'Incorrent login detail.' });
                 else {
-                    console.log(udoc._id);
                     ctx.session.uid = udoc._id;
                     ctx.redirect(ctx.query.redirect || '/');
                 }
@@ -43,9 +42,18 @@ module.exports = class HANDLER_USER {
                     ctx.redirect(ctx.query.redirect || '/');
                 }
             })
-            .all('/logout', async ctx => {
+            .get('/logout', async ctx => {
                 ctx.session.uid = UID_GUEST;
                 ctx.redirect(ctx.query.redirect || '/');
+            })
+            .post('/logout', async ctx => {
+                ctx.session.uid = UID_GUEST;
+                ctx.body = {};
+            })
+            .get('/user', async ctx => {
+                if (ctx.session.uid == UID_GUEST) throw new Error('You are not logged in!');
+                let user = new this.lib.user.user(await this.lib.user.getByUID(ctx.session.uid));
+                await ctx.render('user', { user });
             });
         return this.router;
     }

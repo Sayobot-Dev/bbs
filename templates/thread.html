@@ -1,8 +1,8 @@
+{% set title = thread.title %}
 {% extends "layout/basic.html" %}
-{% block body %}
-    <h1>{{thread.title}}</h1>
+{% block content %}
     <p>{{thread.author.uname}}/{{thread.time.toLocaleString()}}</p>
-    {% if (user.hasPerm(PERM_THREAD_DELETE) or user._id.toHexString()==thread.author._id.toHexString()) %}
+    {% if (user.hasPerm(PERM_THREAD_DELETE)or user._id.toHexString() == thread.author._id.toHexString()) %}
         <a href="/{{category.id}}/{{thread._id.toHexString()}}/delete">Delete thread</a>
     {% endif %}
     <br/>
@@ -15,7 +15,7 @@
         </form>
     {% endif %}
     {% for comment in comments %}
-        {% if (user.hasPerm(PERM_COMMENT_DELETE) or user._id.toHexString()==comment.author._id.toHexString()) %}
+        {% if (user.hasPerm(PERM_COMMENT_DELETE)or user._id.toHexString() == comment.author._id.toHexString()) %}
             <a href="/{{category.id}}/{{thread._id.toHexString()}}/delete/{{comment._id.toHexString()}}">Delete comment</a>
         {% endif %}
         <p>{{comment.author.uname}}/{{comment.time.toLocaleString()}}</p>

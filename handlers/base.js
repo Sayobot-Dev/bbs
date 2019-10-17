@@ -13,6 +13,7 @@ module.exports = class HANDLER_BASE {
             ctx.session.uid = ctx.session.uid || constants.UID_GUEST;
             Object.assign(ctx.state, constants);
             ctx.state.user = new this.lib.user.user(await this.lib.user.getByUID(ctx.session.uid));
+            ctx.state._ = str => str; // TODO(masnn): locale switching
             await next();
             if (ctx.session._id) await this.db.collection('session').save(ctx.session);
             else {
