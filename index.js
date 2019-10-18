@@ -3,7 +3,9 @@ const
     bson = require('bson'),
     Koa = require('koa'),
     Router = require('koa-router'),
+    fs = require('fs'),
     path = require('path'),
+    yaml = require('js-yaml'),
     mongo = require('mongodb'),
     EventEmitter = require('events');
 
@@ -26,13 +28,18 @@ module.exports = class Hydro extends EventEmitter {
         this.io = require('socket.io')(this.server, { cookie: true });
     }
     async load() {
+        if (!this.cfg.ui_path) this.cfg.ui_path = path.resolve(__dirname, '.uibuild');
+        else this.cfg.ui_path = path.resolve(this.cfg.ui_path);
+        log.log('Using ui folder: ', this.cfg.ui_path);
+        if (!fs.existsSync(this.cfg.ui_path)) throw new Error('No UI files found!');
         await this.connectDatabase();
+        await this.loadLocale();
         await this.mountLib();
         if (!await require('./lib/deploy.js')(this.db, this.lib)) return;
         this.app.use((require('./modules/trace.js'))({
             sourceMap: false
         }));
-        this.app.use(require('koa-static')(path.join(__dirname, 'public')));
+        this.app.use(require('koa-static')(path.join(this.cfg.ui_path, 'public')));
         this.app.use(require('koa-morgan')(':method :url :status :res[content-length] - :response-time ms'));
         this.app.use(require('koa-body')({
             patchNode: true,
@@ -44,7 +51,7 @@ module.exports = class Hydro extends EventEmitter {
         }));
         this.app.use(require('koa-nunjucks-2')({
             ext: 'html',
-            path: path.join(__dirname, 'templates'),
+            path: path.join(this.cfg.ui_path, 'templates'),
             nunjucksConfig: {
                 trimBlocks: true
             }
@@ -82,6 +89,14 @@ module.exports = class Hydro extends EventEmitter {
             process.exit(1);
         }
     }
+    async loadLocale() {
+        let locales = fs.readdirSync(path.resolve(this.cfg.ui_path, 'locales'));
+        for (let i of locales) {
+            let locale = yaml.safeLoad((fs.readFileSync(path.resolve(this.cfg.ui_path, 'locales', i))));
+            let name = i.split('.')[0];
+            this.locales[name] = locale;
+        }
+    }
     async mountLib() {
         let conf = require('./lib/config.js');
         this.lib.conf = new conf({ db: this.db });
@@ -94,7 +109,10 @@ module.exports = class Hydro extends EventEmitter {
         let i = {
             db: this.db,
             lib: this.lib,
-            config: {}
+            locales: this.locales,
+            config: {
+                LANGUAGE: (await this.lib.conf.get('language')) || 'en'
+            }
         };
         let Base = new (require('./handlers/base.js'))(i);
         let User = new (require('./handlers/user.js'))(i);

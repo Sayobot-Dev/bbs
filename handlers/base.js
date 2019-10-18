@@ -5,6 +5,12 @@ module.exports = class HANDLER_BASE {
     constructor(i) {
         this.db = i.db;
         this.lib = i.lib;
+        this.locales = i.locales;
+        this.config = i.config;
+    }
+    i18n(lang) {
+        if (this.locales[lang]) return str => this.locales[lang][str] || str;
+        else return str => str;
     }
     async init() {
         return async (ctx, next) => {
@@ -13,7 +19,12 @@ module.exports = class HANDLER_BASE {
             ctx.session.uid = ctx.session.uid || constants.UID_GUEST;
             Object.assign(ctx.state, constants);
             ctx.state.user = new this.lib.user.user(await this.lib.user.getByUID(ctx.session.uid));
-            ctx.state._ = str => str; // TODO(masnn): locale switching
+            let languages = (ctx.request.headers['accept-language'] || '').split(';')[0].split(',');
+            let language = this.config.LANGUAGE;
+            for (let i of languages)
+                if (this.locales[i]) language = i;
+            language = ctx.session.language || language;
+            ctx.state._ = this.i18n(language);
             await next();
             if (ctx.session._id) await this.db.collection('session').save(ctx.session);
             else {
