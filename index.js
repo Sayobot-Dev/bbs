@@ -104,6 +104,10 @@ module.exports = class Hydro extends EventEmitter {
         this.lib.user = new user({ db: this.db, lib: this.lib });
         let crypto = require('./lib/crypto.js');
         this.lib.crypto = new crypto();
+        let token = require('./lib/token.js');
+        this.lib.token = new token({ db: this.db });
+        let mail = require('./lib/mail.js');
+        this.lib.mail = new mail({ db: this.db, lib: this.lib });
     }
     async loadRoutes() {
         let i = {

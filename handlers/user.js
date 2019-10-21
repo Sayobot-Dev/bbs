@@ -1,5 +1,6 @@
 const
     Router = require('koa-router'),
+    { BadRequestError } = require('../errors.js'),
     { UID_GUEST } = require('../constants.js');
 
 module.exports = class HANDLER_USER {
@@ -25,26 +26,35 @@ module.exports = class HANDLER_USER {
                 await ctx.render('register');
             })
             .post('/register', async ctx => {
-                let [uname, email] = await Promise.all([
-                    await this.db.collection('user').findOne({ uname_lower: ctx.request.body.username.toLowerCase() }),
-                    await this.db.collection('user').findOne({ email_lower: ctx.request.body.email.toLowerCase() }),
-                ]);
-                if (uname) await ctx.render('register', { message: 'Username already used.' });
-                else if (email) await ctx.render('register', { message: 'Email already used.' });
+                let email = await this.db.collection('user').findOne({ email_lower: ctx.request.body.mail.toLowerCase() });
+                if (email) throw new BadRequestError('Email already used');
+                let token = await this.lib.token.create({ email: ctx.request.body.mail });
+                let res = await this.lib.mail.send(
+                    ctx.request.body.mail, ctx.state._('Register Verification'),
+                    `${ctx.protocol}://${ctx.host}/register/${token}`, `${ctx.protocol}://${ctx.host}/register/${token}`
+                );
+                if (res) await ctx.render('register_mail_sent');
+                else throw new Error('Error sending mail');
+            })
+            .get('/register/:code', async ctx => {
+                let data = await this.lib.token.get(ctx.params.code);
+                await ctx.render('user_register_with_code', data);
+            })
+            .post('/register/:code', async ctx => {
+                let uname = await this.db.collection('user').findOne({ uname_lower: ctx.request.body.uname.toLowerCase() });
+                if (uname) throw new BadRequestError('Username Already Used');
                 else {
+                    let { email } = await this.lib.token.destory(ctx.params.code);
+                    if (!email) throw new BadRequestError('Invalid token');
                     let { insertedId } = await this.lib.user.create({
-                        email: ctx.request.body.email,
-                        uname: ctx.request.body.username,
+                        email,
+                        uname: ctx.request.body.uname,
                         password: ctx.request.body.password,
                         regip: ctx.request.ip
                     });
                     ctx.session.uid = insertedId;
                     ctx.redirect(ctx.query.redirect || '/');
                 }
-            })
-            .get('/logout', async ctx => {
-                ctx.session.uid = UID_GUEST;
-                ctx.redirect(ctx.query.redirect || '/');
             })
             .post('/logout', async ctx => {
                 ctx.session.uid = UID_GUEST;

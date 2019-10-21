@@ -25,6 +25,13 @@ module.exports = class HANDLER_BASE {
                 if (this.locales[i]) language = i;
             language = ctx.session.language || language;
             ctx.state._ = this.i18n(language);
+            ctx.json = (json, code = 200) => {
+                ctx.body = JSON.stringify(json);
+                ctx.code = code;
+            };
+            let accept = ctx.request.headers.accept.split(',') || '';
+            if (accept.includes('application/json')) ctx.prefer_json = true;
+            else ctx.prefer_json = false;
             await next();
             if (ctx.session._id) await this.db.collection('session').save(ctx.session);
             else {
