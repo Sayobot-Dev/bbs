@@ -27,7 +27,10 @@ async function run() {
         config = {};
     }
     global.Hydro = new hydro(config);
-    await Hydro.load();
+    await Hydro.load().catch(e => {
+        console.error('Error loading application:');
+        console.error(e);
+    });
     await Hydro.listen();
 }
 

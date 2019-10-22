@@ -36,26 +36,6 @@ module.exports = class Hydro extends EventEmitter {
         await this.loadLocale();
         await this.mountLib();
         if (!await require('./lib/deploy.js')(this.db, this.lib)) return;
-        this.app.use((require('./modules/trace.js'))({
-            sourceMap: false
-        }));
-        this.app.use(require('koa-static')(path.join(this.cfg.ui_path, 'public')));
-        this.app.use(require('koa-morgan')(':method :url :status :res[content-length] - :response-time ms'));
-        this.app.use(require('koa-body')({
-            patchNode: true,
-            multipart: true,
-            formidable: {
-                uploadDir: path.join(__dirname, 'uploads'),
-                keepExtensions: true
-            }
-        }));
-        this.app.use(require('koa-nunjucks-2')({
-            ext: 'html',
-            path: path.join(this.cfg.ui_path, 'templates'),
-            nunjucksConfig: {
-                trimBlocks: true
-            }
-        }));
         await this.loadRoutes();
         this.app.use(this.router.routes()).use(this.router.allowedMethods());
         this.status.loaded = true;
@@ -118,6 +98,26 @@ module.exports = class Hydro extends EventEmitter {
                 LANGUAGE: (await this.lib.conf.get('language')) || 'en'
             }
         };
+        this.app.use((require('./handlers/trace.js'))({
+            sourceMap: false
+        }));
+        this.app.use(require('koa-static')(path.join(this.cfg.ui_path, 'public')));
+        this.app.use(require('koa-morgan')(':method :url :status :res[content-length] - :response-time ms'));
+        this.app.use(require('koa-body')({
+            patchNode: true,
+            multipart: true,
+            formidable: {
+                uploadDir: path.join(__dirname, 'uploads'),
+                keepExtensions: true
+            }
+        }));
+        this.app.use(require('koa-nunjucks-2')({
+            ext: 'html',
+            path: path.join(this.cfg.ui_path, 'templates'),
+            nunjucksConfig: {
+                trimBlocks: true
+            }
+        }));
         let Base = new (require('./handlers/base.js'))(i);
         let User = new (require('./handlers/user.js'))(i);
         let Main = new (require('./handlers/main.js'))(i);

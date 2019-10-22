@@ -53,7 +53,7 @@ module.exports = class HANDLER_USER {
                         regip: ctx.request.ip
                     });
                     ctx.session.uid = insertedId;
-                    ctx.redirect(ctx.query.redirect || '/');
+                    ctx.redirect('/');
                 }
             })
             .post('/logout', async ctx => {
