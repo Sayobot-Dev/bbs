@@ -1,5 +1,5 @@
 const
-    log = require('./log.js').get('Deploy'),
+    log = require('hydro').log.get('Deploy'),
     { UID_GUEST } = require('../constants.js'),
     expects = {
         udoc: {

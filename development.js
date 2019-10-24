@@ -19,19 +19,26 @@ process.on('restart', async () => {
 });
 
 async function run() {
-    const hydro = require('./index.js');
+    const hydro = require('hydro').app;
     let config;
     try {
-        config = require('./config.json');
+        config = require('./config.js');
+        config.lib = ['@'];
+        config.handler = ['trace', '@', 'base', 'message', 'user', 'main'];
+        config.deploy = require('./scripts/deploy.js');
+        config.app_path = __dirname;
     } catch (e) {
-        config = {};
+        console.error('Error: Cannot load config');
+        process.exit(1);
     }
     global.Hydro = new hydro(config);
     await Hydro.load().catch(e => {
         console.error('Error loading application:');
         console.error(e);
     });
-    await Hydro.listen();
+    await Hydro.listen().catch(e => {
+        console.error(e);
+    });
 }
 
 run();

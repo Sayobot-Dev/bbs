@@ -1,4 +1,5 @@
 __*
 node_modules/
-config.json
+config.js
+*.swp
 .uibuild/

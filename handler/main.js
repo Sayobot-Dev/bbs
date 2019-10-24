@@ -1,7 +1,7 @@
 const
     Router = require('koa-router'),
     { ObjectID } = require('bson'),
-    { PermissionError } = require('../errors.js'),
+    { PermissionError } = require('hydro').errors,
     { PERM_THREAD_CREATE, PERM_THREAD_REPLY, PERM_THREAD_DELETE, PERM_REPLY_DELETE } = require('../constants.js');
 
 module.exports = class HANDLER_MAIN {
