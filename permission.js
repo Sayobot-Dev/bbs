@@ -1,7 +1,4 @@
-const { ObjectID } = require('bson');
 module.exports = {
-    TYPE_THREAD: 1,
-    UID_GUEST: new ObjectID('000000000000000000000000'),
     PERM_THREAD_CREATE: 1,
     PERM_THREAD_REPLY: 2,
     PERM_THREAD_DELETE: 4,

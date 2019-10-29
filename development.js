@@ -19,24 +19,42 @@ process.on('restart', async () => {
 });
 
 async function run() {
-    const hydro = require('hydro').app;
+    const hydro = require('hydro-framework');
     let config;
     try {
         config = require('./config.js');
         config.lib = ['@'];
-        config.handler = ['trace', '@', 'base', 'message', 'user', 'main'];
+        config.middleware = [
+            hydro.handler.trace,
+            '@',
+            hydro.handler.base,
+            hydro.handler.user
+        ];
+        config.hosts = {
+            'osu.sh': [
+                require('./handler/main/main.js')
+            ],
+            'bbs.osu.sh': [
+                require('./handler/bbs/message.js'),
+                require('./handler/bbs/main.js')
+            ]
+        };
+        config.perm = require('./permission.js');
         config.deploy = require('./scripts/deploy.js');
-        config.app_path = __dirname;
+        config.constants = {
+            MODE_NAME: ['osu!', 'osu!taiko', 'osu!catch', 'osu!mania']
+        };
     } catch (e) {
-        console.error('Error: Cannot load config');
+        console.error('Error loading application:');
+        console.error(e);
         process.exit(1);
     }
-    global.Hydro = new hydro(config);
-    await Hydro.load().catch(e => {
+    global.Hydro = new hydro.app(config);
+    await global.Hydro.load().catch(e => {
         console.error('Error loading application:');
         console.error(e);
     });
-    await Hydro.listen().catch(e => {
+    await global.Hydro.listen().catch(e => {
         console.error(e);
     });
 }

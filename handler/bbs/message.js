@@ -1,10 +1,10 @@
 const
     Router = require('koa-router'),
     { ObjectID } = require('bson'),
-    { PermissionError, NotFoundError } = require('hydro').errors,
-    { PERM_THREAD_CREATE, PERM_THREAD_REPLY, PERM_THREAD_DELETE, PERM_REPLY_DELETE } = require('../constants.js');
+    { PermissionError, NotFoundError } = require('hydro-framework').errors,
+    { PERM_THREAD_CREATE, PERM_THREAD_REPLY, PERM_THREAD_DELETE, PERM_REPLY_DELETE } = require('../../permission.js');
 
-module.exports = class HANDLER_MAIN {
+exports.handler = class {
     constructor(i) {
         this.db = i.db;
         this.lib = i.lib;

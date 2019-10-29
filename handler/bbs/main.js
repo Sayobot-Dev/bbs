@@ -1,10 +1,10 @@
 const
     Router = require('koa-router'),
     { ObjectID } = require('bson'),
-    { PermissionError } = require('hydro').errors,
-    { PERM_THREAD_CREATE, PERM_THREAD_REPLY, PERM_THREAD_DELETE, PERM_REPLY_DELETE } = require('../constants.js');
+    { PermissionError } = require('hydro-framework').errors,
+    { PERM_THREAD_CREATE, PERM_THREAD_REPLY, PERM_THREAD_DELETE, PERM_REPLY_DELETE } = require('../../permission.js');
 
-module.exports = class HANDLER_MAIN {
+exports.handler = class {
     constructor(i) {
         this.db = i.db;
         this.lib = i.lib;
@@ -25,7 +25,7 @@ module.exports = class HANDLER_MAIN {
         this.router
             .get('/', async ctx => {
                 let categories = await this.lib.conf.get('categories');
-                await ctx.render('index', { categories });
+                await ctx.render('bbs_index', { categories });
             })
             .get('/c/:category', async (ctx, next) => {
                 let page = ctx.query.page || 1, category;
@@ -39,7 +39,7 @@ module.exports = class HANDLER_MAIN {
                 else {
                     let threads = await this.db.collection('thread').find({ category: category.id })
                         .skip((page - 1) * 50).limit(50).sort({ time: -1 }).toArray();
-                    await ctx.render('list', { category, threads });
+                    await ctx.render('bbs_list', { category, threads });
                 }
             })
             .get('/c/:category/create', async (ctx, next) => {
@@ -50,7 +50,7 @@ module.exports = class HANDLER_MAIN {
                         break;
                     }
                 if (!category) await next();
-                else await ctx.render('create', { category });
+                else await ctx.render('bbs_create', { category });
             })
             .post('/c/:category/create', async (ctx, next) => {
                 if (!ctx.state.user.hasPerm(PERM_THREAD_CREATE)) throw new PermissionError();
@@ -92,7 +92,7 @@ module.exports = class HANDLER_MAIN {
                     for (let i in comments) queue.push(await this.formatComment(comments[i]));
                     await Promise.all(queue);
                     thread.author = author;
-                    await ctx.render('thread', { thread, comments, category });
+                    await ctx.render('bbs_thread', { thread, comments, category });
                 }
             })
             .all('/t/:id/delete', async (ctx, next) => {

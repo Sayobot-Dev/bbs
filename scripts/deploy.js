@@ -1,6 +1,6 @@
 const
-    log = require('hydro').log.get('Deploy'),
-    { UID_GUEST } = require('../constants.js'),
+    log = require('hydro-framework').log.get('Deploy'),
+    { UID_GUEST } = require('hydro-framework'),
     expects = {
         udoc: {
             _id: UID_GUEST,
