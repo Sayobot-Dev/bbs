@@ -21,7 +21,12 @@ exports.handler = class {
         queue = await Promise.all(queue);
         for (let i in queue) comment.reply[i].author = queue;
     }
+    async prepare() {
+        let cfg = await this.lib.config.get('categories');
+        if (!cfg) await this.lib.config.set('categories', [{ id: 'default', name: 'Default Category' }]);
+    }
     async init() {
+        await this.prepare();
         this.router
             .get('/', async ctx => {
                 let categories = await this.lib.conf.get('categories');
@@ -161,3 +166,5 @@ exports.handler = class {
         return this.router;
     }
 };
+exports.depends = ['database', 'user'];
+exports.id = 'bbs.main';

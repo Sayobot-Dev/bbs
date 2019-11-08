@@ -46,3 +46,4 @@ exports.handler = class {
         return this.router;
     }
 };
+exports.depends = ['database', 'user'];

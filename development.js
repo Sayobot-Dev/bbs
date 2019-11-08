@@ -23,10 +23,10 @@ async function run() {
     let config;
     try {
         config = require('./config.js');
-        config.lib = ['@'];
         config.middleware = [
             hydro.handler.trace,
-            '@',
+            hydro.handler.nunjucks,
+            hydro.handler.log,
             hydro.handler.base,
             hydro.handler.user
         ];
@@ -40,7 +40,6 @@ async function run() {
             ]
         };
         config.perm = require('./permission.js');
-        config.deploy = require('./scripts/deploy.js');
         config.constants = {
             MODE_NAME: ['osu!', 'osu!taiko', 'osu!catch', 'osu!mania']
         };

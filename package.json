@@ -23,12 +23,9 @@
   "homepage": "https://github.com/sayobot-dev/bbs#readme",
   "dependencies": {
     "axios": "^0.19.0",
-    "hydro-framework": "^0.0.3"
+    "hydro-framework": "^0.0.4"
   },
   "devDependencies": {
     "eslint": "^6.5.1"
-  },
-  "optionalDependencies": {
-    "bbs-ui-default": "../bbs-ui-default"
   }
 }

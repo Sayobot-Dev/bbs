@@ -1,4 +1,5 @@
 const
+    MESSAGES_PER_PAGE = 50,
     Router = require('koa-router'),
     { ObjectID } = require('bson'),
     { PermissionError, NotFoundError } = require('hydro-framework').errors,
@@ -18,14 +19,18 @@ exports.handler = class {
         this.router
             .get('/m', async ctx => {
                 if (!ctx.state.user._id) throw new PermissionError('You are not logged in!');
-                let messages = await this.db.collection('message').find({ user: ctx.state.user._id }).toArray();
+                let page = ctx.query.page || 1;
+                let messages = await this.lib.message.find({ uid: ctx.state.user._id })
+                    .skip((page - 1) * MESSAGES_PER_PAGE)
+                    .limit(MESSAGES_PER_PAGE)
+                    .toArray();
                 await ctx.render('message', { messages });
             })
             .post('/m/ack/:id', async ctx => {
-                let message = await this.db.collection('message').findOne({ _id: ctx.params.id, user: ctx.state.user._id });
-                if (!message) throw new NotFoundError('Message not found!');
-                await this.db.collection('message').delete({ _id: ctx.params.id, user: ctx.state.user._id });
+                await this.lib.message.ack(ctx.params.id, ctx.state.user._id);
             });
         return this.router;
     }
 };
+exports.depends = ['database', 'user'];
+exports.id = 'bbs.message';
